@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - master
-  workflow_dispatch: # Allows manual trigger from the GitHub UI
+  workflow_dispatch:
 
 jobs:
   build:
@@ -26,6 +26,9 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+
+      - name: Generate Android Project
+        run: flutter create --org com.asilbek.vaultnote --project-name vaultnote .
 
       - name: Install Dependencies
         run: flutter pub get
