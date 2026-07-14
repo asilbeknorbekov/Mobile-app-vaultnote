@@ -55,11 +55,6 @@ dependencies:
   permission_handler: any
   equatable: any
 
-  # Document / Audio handling
-  file_picker: any
-  record: any
-  audioplayers: any
-  image_picker: any
   flutter_markdown: any
   share_plus: any
 
