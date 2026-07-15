@@ -22,9 +22,6 @@ dependencies:
   uuid: any
   intl: any
   equatable: any
-  flutter_markdown: any
-  share_plus: any
-  convert: any
 
 dev_dependencies:
   flutter_test:
