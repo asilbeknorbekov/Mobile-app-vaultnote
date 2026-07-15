@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../domain/entities/note.dart';
 import '../../../domain/repositories/notes_repository.dart';
-import '../../datasources/local/daos/notes_dao.dart';
+import '../datasources/local/daos/notes_dao.dart';
 import '../../../core/security/encryption_service.dart';
 
 class NotesRepositoryImpl implements NotesRepository {

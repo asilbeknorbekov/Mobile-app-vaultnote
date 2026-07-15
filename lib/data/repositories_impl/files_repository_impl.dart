@@ -4,7 +4,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/storage/secure_file_storage.dart';
 import '../../../domain/entities/vault_file.dart';
 import '../../../domain/repositories/files_repository.dart';
-import '../../datasources/local/daos/files_dao.dart';
+import '../datasources/local/daos/files_dao.dart';
 
 class FilesRepositoryImpl implements FilesRepository {
   final FilesDao _dao;

@@ -26,6 +26,7 @@ class LucideIcons {
 
   // Notes & Files
   static const IconData penTool = Icons.edit_outlined;
+  static const IconData bookOpen = Icons.menu_book_outlined;
   static const IconData pin = Icons.push_pin_outlined;
   static const IconData pinOff = Icons.push_pin;
   static const IconData file = Icons.insert_drive_file_outlined;
