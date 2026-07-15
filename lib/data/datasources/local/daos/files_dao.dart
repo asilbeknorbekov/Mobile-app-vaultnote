@@ -1,34 +1,37 @@
-import 'package:drift/drift.dart';
-import 'package:injectable/injectable.dart';
-import '../database.dart';
-import '../tables.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-part 'files_dao.g.dart';
+class FilesDao {
+  final SharedPreferences _prefs;
+  static const _key = 'vault_files';
 
-@lazySingleton
-@DriftAccessor(tables: [FilesTable])
-class FilesDao extends DatabaseAccessor<AppDatabase> with _$FilesDaoMixin {
-  FilesDao(super.db);
+  FilesDao(this._prefs);
 
-  Future<List<FileEntity>> getAllFiles() {
-    return (select(filesTable)
-          ..orderBy([(t) => OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)]))
-        .get();
+  List<Map<String, dynamic>> getAllFiles() {
+    final raw = _prefs.getString(_key);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list.cast<Map<String, dynamic>>();
   }
 
-  Future<List<FileEntity>> getFilesForNote(String noteId) {
-    return (select(filesTable)..where((t) => t.noteId.equals(noteId))).get();
+  Map<String, dynamic>? getFileById(String id) {
+    final files = getAllFiles();
+    try {
+      return files.firstWhere((f) => f['id'] == id);
+    } catch (_) {
+      return null;
+    }
   }
 
-  Future<FileEntity?> getFileById(String id) {
-    return (select(filesTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+  Future<void> insertFile(Map<String, dynamic> file) async {
+    final files = getAllFiles();
+    files.insert(0, file);
+    await _prefs.setString(_key, jsonEncode(files));
   }
 
-  Future<int> insertFile(FilesTableCompanion file) {
-    return into(filesTable).insert(file);
-  }
-
-  Future<int> deleteFile(String id) {
-    return (delete(filesTable)..where((t) => t.id.equals(id))).go();
+  Future<void> deleteFile(String id) async {
+    final files = getAllFiles();
+    files.removeWhere((f) => f['id'] == id);
+    await _prefs.setString(_key, jsonEncode(files));
   }
 }

@@ -11,63 +11,25 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # State Management
   flutter_riverpod: any
-  hooks_riverpod: any
-
-  # Routing
   go_router: any
-
-  # UI & Design System
   google_fonts: any
   cupertino_icons: any
-  cached_network_image: any
-  shimmer: any
   flutter_animate: any
-
-  # Dependency Injection
-  get_it: any
-  injectable: any
-
-  # Database & Storage
-  drift: any
-  sqlite3_flutter_libs: any
+  shared_preferences: any
   path_provider: any
   path: any
-  shared_preferences: any
-  flutter_secure_storage: any
-  encrypt: any
-
-  # Security & Auth
-  local_auth: any
-
-  # Background tasks
-  workmanager: any
-
-  # Error reporting
-  sentry_flutter: any
-
-  # Utilities
-  freezed_annotation: any
-  json_annotation: any
   uuid: any
   intl: any
-  permission_handler: any
   equatable: any
-
   flutter_markdown: any
   share_plus: any
+  convert: any
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: any
-  build_runner: any
-  freezed: any
-  json_serializable: any
-  drift_dev: any
-  injectable_generator: any
-  mocktail: any
 
 flutter:
   uses-material-design: true

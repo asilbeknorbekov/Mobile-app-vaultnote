@@ -6,7 +6,7 @@ import '../features/main/main_scaffold.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/notes/screens/notes_list_screen.dart';
 import '../features/notes/screens/note_editor_screen.dart';
-import '../../main.dart';
+import '../app.dart';
 import '../features/files/screens/files_list_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/voice/screens/voice_recorder_screen.dart';
@@ -21,7 +21,7 @@ final _sectionCNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'sectionCNav
 final _sectionDNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'sectionDNav');
 
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
+  final prefs = ref.watch(sharedPrefsProvider);
   final hasCompletedOnboarding = prefs.getBool('has_completed_onboarding') ?? false;
 
   return GoRouter(

@@ -1,58 +1,33 @@
-import 'package:drift/drift.dart';
-import 'package:injectable/injectable.dart';
-import '../database.dart';
-import '../tables.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-part 'notes_dao.g.dart';
+class NotesDao {
+  final SharedPreferences _prefs;
+  static const _key = 'vault_notes';
 
-@lazySingleton
-@DriftAccessor(tables: [NotesTable])
-class NotesDao extends DatabaseAccessor<AppDatabase> with _$NotesDaoMixin {
-  NotesDao(super.db);
+  NotesDao(this._prefs);
 
-  /// Get all active notes (not trashed, not archived) ordered by newest first
-  Future<List<NoteEntity>> getActiveNotes() {
-    return (select(notesTable)
-          ..where((t) => t.isTrashed.equals(false) & t.isArchived.equals(false))
-          ..orderBy([(t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc)]))
-        .get();
+  List<Map<String, dynamic>> getAllNotes() {
+    final raw = _prefs.getString(_key);
+    if (raw == null) return [];
+    final list = jsonDecode(raw) as List;
+    return list.cast<Map<String, dynamic>>();
   }
 
-  /// Get all pinned notes
-  Future<List<NoteEntity>> getPinnedNotes() {
-    return (select(notesTable)
-          ..where((t) => t.isPinned.equals(true) & t.isTrashed.equals(false))
-          ..orderBy([(t) => OrderingTerm(expression: t.updatedAt, mode: OrderingMode.desc)]))
-        .get();
+  Future<void> insertNote(Map<String, dynamic> note) async {
+    final notes = getAllNotes();
+    final idx = notes.indexWhere((n) => n['id'] == note['id']);
+    if (idx >= 0) {
+      notes[idx] = note;
+    } else {
+      notes.insert(0, note);
+    }
+    await _prefs.setString(_key, jsonEncode(notes));
   }
 
-  /// Get a specific note by ID
-  Future<NoteEntity?> getNoteById(String id) {
-    return (select(notesTable)..where((t) => t.id.equals(id))).getSingleOrNull();
-  }
-
-  /// Insert a new note
-  Future<int> insertNote(NotesTableCompanion note) {
-    return into(notesTable).insert(note);
-  }
-
-  /// Update an existing note
-  Future<bool> updateNote(NotesTableCompanion note) {
-    return update(notesTable).replace(note);
-  }
-
-  /// Move a note to trash
-  Future<int> trashNote(String id) {
-    return (update(notesTable)..where((t) => t.id.equals(id))).write(
-      const NotesTableCompanion(
-        isTrashed: Value(true),
-        isPinned: Value(false),
-      ),
-    );
-  }
-  
-  /// Delete a note permanently
-  Future<int> deleteNotePermanently(String id) {
-    return (delete(notesTable)..where((t) => t.id.equals(id))).go();
+  Future<void> deleteNote(String id) async {
+    final notes = getAllNotes();
+    notes.removeWhere((n) => n['id'] == id);
+    await _prefs.setString(_key, jsonEncode(notes));
   }
 }

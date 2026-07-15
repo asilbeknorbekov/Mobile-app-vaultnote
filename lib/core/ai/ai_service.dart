@@ -1,7 +1,5 @@
-import 'package:injectable/injectable.dart';
 import '../../domain/entities/note.dart';
 
-@lazySingleton
 class AiService {
   
   /// Simulates querying the AI with context from the local vault.

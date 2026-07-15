@@ -2,16 +2,11 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:injectable/injectable.dart';
 import '../security/encryption_service.dart';
 
-@lazySingleton
 class SecureFileStorage {
-  final EncryptionService _encryptionService;
+  final EncryptionService _encryptionService = EncryptionService();
 
-  SecureFileStorage(this._encryptionService);
-
-  /// Gets the secure directory for storing encrypted files
   Future<Directory> _getVaultDirectory() async {
     final appDir = await getApplicationDocumentsDirectory();
     final vaultDir = Directory(p.join(appDir.path, 'vault_files'));
@@ -21,30 +16,23 @@ class SecureFileStorage {
     return vaultDir;
   }
 
-  /// Encrypts and saves raw bytes to disk. Returns the absolute path of the saved file.
   Future<String> saveFile(String fileId, Uint8List rawBytes, String extension) async {
     final vaultDir = await _getVaultDirectory();
-    // Use .enc extension to explicitly mark it as encrypted on disk
     final file = File(p.join(vaultDir.path, '$fileId.$extension.enc'));
-    
     final encryptedBytes = _encryptionService.encryptBytes(rawBytes);
     await file.writeAsBytes(encryptedBytes, flush: true);
-    
     return file.path;
   }
 
-  /// Reads and decrypts a file from disk
   Future<Uint8List> readFile(String filePath) async {
     final file = File(filePath);
     if (!await file.exists()) {
       throw const FileSystemException('Encrypted file not found');
     }
-    
     final encryptedBytes = await file.readAsBytes();
     return _encryptionService.decryptBytes(encryptedBytes);
   }
 
-  /// Deletes a file from disk
   Future<void> deleteFile(String filePath) async {
     final file = File(filePath);
     if (await file.exists()) {

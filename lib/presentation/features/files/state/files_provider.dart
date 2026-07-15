@@ -1,12 +1,9 @@
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/di/injection.dart';
 import '../../../../domain/entities/vault_file.dart';
 import '../../../../domain/repositories/files_repository.dart';
-
-final filesRepositoryProvider = Provider<FilesRepository>((ref) {
-  return getIt<FilesRepository>();
-});
+import '../../../../data/repositories_impl/files_repository_impl.dart';
+import '../../../app.dart';
 
 final filesProvider = AsyncNotifierProvider<FilesNotifier, List<VaultFile>>(() {
   return FilesNotifier();
@@ -17,7 +14,8 @@ class FilesNotifier extends AsyncNotifier<List<VaultFile>> {
 
   @override
   Future<List<VaultFile>> build() async {
-    _repository = ref.watch(filesRepositoryProvider);
+    final prefs = ref.watch(sharedPrefsProvider);
+    _repository = FilesRepositoryImpl(prefs);
     return _repository.getAllFiles();
   }
 
@@ -29,13 +27,8 @@ class FilesNotifier extends AsyncNotifier<List<VaultFile>> {
   Future<VaultFile?> saveFile(String fileName, String fileType, Uint8List bytes, {String? noteId}) async {
     try {
       final newFile = await _repository.saveFile(
-        fileName: fileName,
-        fileType: fileType,
-        rawBytes: bytes,
-        noteId: noteId,
+        fileName: fileName, fileType: fileType, rawBytes: bytes, noteId: noteId,
       );
-      
-      // Update state
       if (state.hasValue) {
         final list = List<VaultFile>.from(state.value!);
         list.insert(0, newFile);

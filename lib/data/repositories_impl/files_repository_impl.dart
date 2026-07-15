@@ -1,42 +1,37 @@
 import 'dart:typed_data';
-import 'package:drift/drift.dart';
-import 'package:injectable/injectable.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/storage/secure_file_storage.dart';
 import '../../../domain/entities/vault_file.dart';
 import '../../../domain/repositories/files_repository.dart';
 import '../../datasources/local/daos/files_dao.dart';
-import '../../datasources/local/database.dart';
 
-@LazySingleton(as: FilesRepository)
 class FilesRepositoryImpl implements FilesRepository {
-  final FilesDao _filesDao;
-  final SecureFileStorage _secureFileStorage;
+  final FilesDao _dao;
+  final SecureFileStorage _storage;
 
-  FilesRepositoryImpl(this._filesDao, this._secureFileStorage);
-
-  VaultFile _mapToEntity(FileEntity dbFile) {
-    return VaultFile(
-      id: dbFile.id,
-      noteId: dbFile.noteId,
-      fileName: dbFile.fileName,
-      fileType: dbFile.fileType,
-      localPath: dbFile.localPath,
-      sizeBytes: dbFile.sizeBytes,
-      createdAt: dbFile.createdAt,
-    );
-  }
+  FilesRepositoryImpl(SharedPreferences prefs)
+      : _dao = FilesDao(prefs),
+        _storage = SecureFileStorage();
 
   @override
   Future<List<VaultFile>> getAllFiles() async {
-    final dbFiles = await _filesDao.getAllFiles();
-    return dbFiles.map(_mapToEntity).toList();
+    final rows = _dao.getAllFiles();
+    return rows.map((r) => VaultFile(
+      id: r['id'] as String,
+      noteId: r['noteId'] as String?,
+      fileName: r['fileName'] as String,
+      fileType: r['fileType'] as String,
+      localPath: r['localPath'] as String,
+      sizeBytes: r['sizeBytes'] as int,
+      createdAt: DateTime.parse(r['createdAt'] as String),
+    )).toList();
   }
 
   @override
   Future<List<VaultFile>> getFilesForNote(String noteId) async {
-    final dbFiles = await _filesDao.getFilesForNote(noteId);
-    return dbFiles.map(_mapToEntity).toList();
+    final all = await getAllFiles();
+    return all.where((f) => f.noteId == noteId).toList();
   }
 
   @override
@@ -47,50 +42,39 @@ class FilesRepositoryImpl implements FilesRepository {
     String? noteId,
   }) async {
     final fileId = const Uuid().v4();
-    
-    // 1. Write the encrypted file to disk securely
-    final localPath = await _secureFileStorage.saveFile(fileId, rawBytes, fileType);
-    
-    // 2. Save metadata to SQLite
+    final localPath = await _storage.saveFile(fileId, rawBytes, fileType);
     final createdAt = DateTime.now();
-    final companion = FilesTableCompanion(
-      id: Value(fileId),
-      noteId: Value(noteId),
-      fileName: Value(fileName),
-      fileType: Value(fileType),
-      localPath: Value(localPath),
-      sizeBytes: Value(rawBytes.length),
-      createdAt: Value(createdAt),
-    );
-    
-    await _filesDao.insertFile(companion);
-    
+
+    await _dao.insertFile({
+      'id': fileId,
+      'noteId': noteId,
+      'fileName': fileName,
+      'fileType': fileType,
+      'localPath': localPath,
+      'sizeBytes': rawBytes.length,
+      'createdAt': createdAt.toIso8601String(),
+    });
+
     return VaultFile(
-      id: fileId,
-      noteId: noteId,
-      fileName: fileName,
-      fileType: fileType,
-      localPath: localPath,
-      sizeBytes: rawBytes.length,
-      createdAt: createdAt,
+      id: fileId, noteId: noteId, fileName: fileName,
+      fileType: fileType, localPath: localPath,
+      sizeBytes: rawBytes.length, createdAt: createdAt,
     );
   }
 
   @override
   Future<Uint8List> getFileBytes(String fileId) async {
-    final dbFile = await _filesDao.getFileById(fileId);
-    if (dbFile == null) throw Exception('File not found in database');
-    
-    // Reads from disk and decrypts
-    return await _secureFileStorage.readFile(dbFile.localPath);
+    final file = _dao.getFileById(fileId);
+    if (file == null) throw Exception('File not found');
+    return await _storage.readFile(file['localPath'] as String);
   }
 
   @override
   Future<void> deleteFile(String fileId) async {
-    final dbFile = await _filesDao.getFileById(fileId);
-    if (dbFile != null) {
-      await _secureFileStorage.deleteFile(dbFile.localPath);
-      await _filesDao.deleteFile(fileId);
+    final file = _dao.getFileById(fileId);
+    if (file != null) {
+      await _storage.deleteFile(file['localPath'] as String);
+      await _dao.deleteFile(fileId);
     }
   }
 }
