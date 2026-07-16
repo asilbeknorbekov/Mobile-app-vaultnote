@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vaultnote/core/icons/lucide_icons.dart';
-import '../../../../core/ai/ai_service.dart';
 import '../../../../core/design_system/glass_surface.dart';
 import '../../../../core/design_system/glass_theme.dart';
 import '../../notes/state/notes_provider.dart';
@@ -23,9 +22,8 @@ class _ChatMessage {
 class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<_ChatMessage> _messages = [
-    _ChatMessage("Hi! I'm your Second Brain. Ask me anything about your notes.", false),
+    _ChatMessage("Hi! I'm your offline local Assistant. Ask me to search your notes for a keyword.", false),
   ];
-  final AiService _aiService = AiService();
   bool _isTyping = false;
 
   void _sendMessage() async {
@@ -35,29 +33,35 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     _controller.clear();
     setState(() {
       _messages.add(_ChatMessage(text, true));
-      _messages.add(_ChatMessage("", false)); // Empty placeholder for AI response
       _isTyping = true;
     });
 
-    // Fetch notes context for the AI
+    // Simulate a brief "thinking" pause
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Fetch notes context for the local AI
     final notes = ref.read(notesProvider).valueOrNull ?? [];
+    final query = text.toLowerCase();
+    final matchingNotes = notes.where((n) => 
+        n.title.toLowerCase().contains(query) || 
+        n.content.toLowerCase().contains(query)
+    ).toList();
 
-    String currentResponse = "";
-    final stream = _aiService.askAssistant(text, notes);
-    
-    await for (final chunk in stream) {
-      if (!mounted) return;
-      setState(() {
-        currentResponse += chunk;
-        _messages[_messages.length - 1] = _ChatMessage(currentResponse, false);
-      });
+    String response;
+    if (matchingNotes.isEmpty) {
+      response = "I couldn't find any notes mentioning '$text'.";
+    } else {
+      response = "I found ${matchingNotes.length} notes about '$text':\n";
+      for (var n in matchingNotes) {
+        response += "• ${n.title.isNotEmpty ? n.title : 'Untitled'}\n";
+      }
     }
 
-    if (mounted) {
-      setState(() {
-        _isTyping = false;
-      });
-    }
+    if (!mounted) return;
+    setState(() {
+      _messages.add(_ChatMessage(response, false));
+      _isTyping = false;
+    });
   }
 
   @override

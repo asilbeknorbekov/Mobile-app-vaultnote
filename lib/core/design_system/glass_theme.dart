@@ -51,17 +51,19 @@ class GlassTheme {
 
   // A helper widget to provide the animated gradient/aurora backdrop
   static Widget buildBackground({required Widget child, required bool isDark}) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [GlassColors.darkBackgroundStart, GlassColors.darkBackgroundEnd]
-              : [GlassColors.lightBackgroundStart, GlassColors.lightBackgroundEnd],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          'assets/images/background.jpg',
+          fit: BoxFit.cover,
         ),
-      ),
-      child: child,
+        if (isDark)
+          Container(
+            color: Colors.black.withOpacity(0.5),
+          ),
+        child,
+      ],
     );
   }
 }

@@ -9,12 +9,12 @@ class GlassColors {
   static const Color darkBackgroundEnd = Color(0xFF1E293B);    // Charcoal
 
   // Glass Fills
-  static const Color lightGlassFill = Color(0x1FFFFFFF); // White at 12% opacity
-  static const Color darkGlassFill = Color(0x40000000);  // Black at ~25% opacity
+  static const Color lightGlassFill = Color(0x66FFFFFF); // White at 40% opacity
+  static const Color darkGlassFill = Color(0x66000000);  // Black at 40% opacity
   
   // Glass Borders
-  static const Color glassBorderLight = Color(0x2EFFFFFF); // White at 18% opacity
-  static const Color glassBorderDark = Color(0x2EFFFFFF);  // White at 18% opacity
+  static const Color glassBorderLight = Color(0x66FFFFFF); // White at 40% opacity
+  static const Color glassBorderDark = Color(0x40FFFFFF);  // White at 25% opacity
   
   // Outer Shadows
   static const Color glassShadow = Color(0x26000000); // Black at 15% opacity
