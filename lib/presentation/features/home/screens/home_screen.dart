@@ -143,7 +143,7 @@ class HomeScreen extends ConsumerWidget {
                                     updatedAt: DateTime.now(),
                                     tags: [],
                                   );
-                                  ref.read(notesProvider.notifier).addNote(newNote);
+                                  ref.read(notesProvider.notifier).saveNote(newNote);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Voice transcribed and saved as note.')),
                                   );
