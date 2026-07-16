@@ -36,9 +36,11 @@ class LucideIcons {
 
   // Media
   static const IconData mic = Icons.mic_outlined;
+  static const IconData micOff = Icons.mic_off_outlined;
   static const IconData scan = Icons.document_scanner_outlined;
   static const IconData send = Icons.send;
   static const IconData square = Icons.stop;
+  static const IconData play = Icons.play_arrow_outlined;
 
   // Dashboard & Stats
   static const IconData database = Icons.storage_outlined;
@@ -55,4 +57,5 @@ class LucideIcons {
 
   // Onboarding
   static const IconData brainCircuit = Icons.psychology_outlined;
+  static const IconData user = Icons.person_outline;
 }
