@@ -1,49 +1,50 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../domain/entities/note.dart';
-import '../../../../domain/repositories/notes_repository.dart';
-import '../../../../data/repositories_impl/notes_repository_impl.dart';
-import '../../../app.dart';
+import '../../../../data/datasources/local/database/app_database.dart';
+import '../../../../data/datasources/local/database/database_provider.dart';
+import 'package:drift/drift.dart';
 
-final notesProvider = AsyncNotifierProvider<NotesNotifier, List<Note>>(() {
-  return NotesNotifier();
+final notesProvider = StreamProvider<List<Note>>((ref) {
+  final db = ref.watch(databaseProvider);
+  
+  return db.select(db.notes).watch().map((rows) {
+    return rows.map((r) => Note(
+      id: r.id,
+      title: r.title,
+      content: r.body,
+      tags: [], // Tags will be queried separately if needed
+      isPinned: false, // Drift schema doesn't have isPinned right now, maybe add it later
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    )).toList();
+  });
 });
 
-class NotesNotifier extends AsyncNotifier<List<Note>> {
-  late final NotesRepository _repository;
+final notesNotifierProvider = Provider<NotesNotifier>((ref) {
+  final db = ref.watch(databaseProvider);
+  return NotesNotifier(db);
+});
 
-  @override
-  Future<List<Note>> build() async {
-    final prefs = ref.watch(sharedPrefsProvider);
-    _repository = NotesRepositoryImpl(prefs);
-    return _repository.getAllNotes();
-  }
+class NotesNotifier {
+  final AppDatabase _db;
 
-  Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _repository.getAllNotes());
-  }
+  NotesNotifier(this._db);
 
   Future<void> saveNote(Note note) async {
-    await _repository.saveNote(note);
-    if (state.hasValue) {
-      final list = List<Note>.from(state.value!);
-      final idx = list.indexWhere((n) => n.id == note.id);
-      if (idx >= 0) {
-        list[idx] = note;
-      } else {
-        list.insert(0, note);
-      }
-      state = AsyncValue.data(list);
-    }
+    await _db.into(_db.notes).insert(
+      NotesCompanion.insert(
+        id: note.id,
+        title: note.title,
+        body: note.content,
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt,
+        isEncrypted: const Value(false),
+      ),
+      mode: InsertMode.insertOrReplace,
+    );
   }
 
   Future<void> deleteNote(String id) async {
-    await _repository.deleteNote(id);
-    if (state.hasValue) {
-      final list = List<Note>.from(state.value!);
-      list.removeWhere((n) => n.id == id);
-      state = AsyncValue.data(list);
-    }
+    await (_db.delete(_db.notes)..where((t) => t.id.equals(id))).go();
   }
 }

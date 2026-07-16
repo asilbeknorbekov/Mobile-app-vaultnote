@@ -76,7 +76,7 @@ class _NoteEditorScreenState extends ConsumerState<NoteEditorScreen> {
       updatedAt: DateTime.now(),
     );
 
-    ref.read(notesProvider.notifier).saveNote(note);
+    ref.read(notesNotifierProvider).saveNote(note);
   }
 
   void _togglePin() {

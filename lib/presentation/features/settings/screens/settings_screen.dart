@@ -4,6 +4,8 @@ import 'package:anote/core/icons/lucide_icons.dart';
 import '../../../../core/design_system/glass_surface.dart';
 import '../../../../core/design_system/glass_theme.dart';
 import '../../../core/theme/theme_provider.dart';
+import '../../../../data/datasources/local/database/backup_service.dart';
+import 'package:file_picker/file_picker.dart';
 
 final localAiModeProvider = StateProvider<bool>((ref) => false);
 
@@ -74,10 +76,18 @@ class SettingsScreen extends ConsumerWidget {
                 child: Column(children: [
                   ListTile(
                     leading: const Icon(LucideIcons.downloadCloud),
-                    title: const Text('Encrypted Backup'),
-                    subtitle: const Text('Last backed up yesterday'),
+                    title: const Text('Export Vault'),
+                    subtitle: const Text('Save encrypted zip locally'),
                     trailing: const Icon(LucideIcons.chevronRight),
-                    onTap: () {},
+                    onTap: () => _exportVault(context),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(LucideIcons.uploadCloud),
+                    title: const Text('Import Vault'),
+                    subtitle: const Text('Restore from encrypted zip'),
+                    trailing: const Icon(LucideIcons.chevronRight),
+                    onTap: () => _importVault(context),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -91,6 +101,75 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _exportVault(BuildContext context) async {
+    final password = await _promptPassword(context, 'Export Vault', 'Create a password to encrypt your backup.');
+    if (password != null && password.isNotEmpty) {
+      try {
+        await BackupService().exportVault(password);
+      } catch (e) {
+        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+      }
+    }
+  }
+
+  Future<void> _importVault(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('WARNING'),
+        content: const Text('Importing a vault will completely overwrite your current notes and files. Are you sure?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(c, true), child: const Text('Yes, Overwrite', style: TextStyle(color: Colors.red))),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final result = await FilePicker.platform.pickFiles(type: FileType.any);
+      if (result != null && result.files.single.path != null) {
+        final path = result.files.single.path!;
+        final password = await _promptPassword(context, 'Import Vault', 'Enter the password you used to export this backup.');
+        if (password != null && password.isNotEmpty) {
+          try {
+            await BackupService().importVault(path, password);
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Import successful. Please restart the app.')));
+          } catch (e) {
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Import failed: $e')));
+          }
+        }
+      }
+    }
+  }
+
+  Future<String?> _promptPassword(BuildContext context, String title, String message) {
+    String pswd = '';
+    return showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(message),
+              const SizedBox(height: 16),
+              TextField(
+                obscureText: true,
+                onChanged: (v) => pswd = v,
+                decoration: const InputDecoration(hintText: 'Password'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, pswd), child: const Text('OK')),
+          ],
+        );
+      },
     );
   }
 }

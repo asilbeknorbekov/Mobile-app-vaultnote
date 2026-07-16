@@ -1,39 +1,3 @@
-# VaultNote 🧠
-
-"Your AI Second Brain."
-
-VaultNote is a production-quality, local-first personal AI memory system. Users save notes, files, voice, images, and PDFs, and AI organizes, connects, summarizes, and retrieves everything safely and securely on their device. 
-
-## 🏗 Architecture Guide
-
-VaultNote follows **Clean Architecture** principles to separate concerns into layers. We use the **Repository Pattern** and ensure **SOLID** principles are adhered to.
-
-- **Frontend:** Flutter
-- **State Management:** Riverpod (`flutter_riverpod`)
-- **Routing:** GoRouter
-- **Dependency Injection:** GetIt + Injectable
-- **Local Database:** SQLite via Drift
-- **Storage:** Encrypted file storage (AES-256)
-- **Auth:** Local Auth (PIN, Fingerprint, Face ID)
-- **Design System:** Custom Glassmorphism built strictly with Flutter's `BackdropFilter` and Material 3 dynamically seeded colors.
-
-### Folder Structure
-```text
-lib/
-├── core/                   # App-wide core functionalities
-│   ├── design_system/      # Glassmorphism tokens, widgets, themes
-│   ├── di/                 # Dependency injection setup
-│   ├── error/              # Error handling and Sentry reporting
-│   ├── network/            # Network clients
-│   ├── security/           # Encryption and biometric auth
-│   ├── storage/            # File storage utilities
-│   └── usecase/            # Base usecase classes
-├── data/                   # Data layer
-│   ├── datasources/        # Local SQLite, encrypted files, APIs
-│   ├── models/             # DTOs
-│   └── repositories_impl/  # Implementation of domain repositories
-├── domain/                 # Domain layer (Business Logic)
-│   ├── entities/           # Core business objects
 │   ├── repositories/       # Interfaces for repositories
 │   └── usecases/           # Specific feature usecases
 ├── presentation/           # Presentation layer

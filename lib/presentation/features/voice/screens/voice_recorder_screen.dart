@@ -128,7 +128,7 @@ class _VoiceRecorderScreenState extends ConsumerState<VoiceRecorderScreen> {
     if (path != null) {
       if (widget.mode == 'audio') {
         final bytes = await File(path).readAsBytes();
-        await ref.read(filesProvider.notifier).saveFile('Voice_Note_${DateTime.now().millisecondsSinceEpoch}.m4a', 'm4a', bytes);
+        await ref.read(filesNotifierProvider).saveFile('Voice_Note_${DateTime.now().millisecondsSinceEpoch}.m4a', 'm4a', bytes);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Audio saved to Vault')));
           context.pop();
@@ -144,7 +144,7 @@ class _VoiceRecorderScreenState extends ConsumerState<VoiceRecorderScreen> {
               updatedAt: DateTime.now(),
               tags: [],
             );
-            ref.read(notesProvider.notifier).saveNote(newNote);
+            ref.read(notesNotifierProvider).saveNote(newNote);
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Transcribed note saved')));
               context.pop();

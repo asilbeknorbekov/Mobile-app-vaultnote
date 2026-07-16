@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:anote/core/icons/lucide_icons.dart';
 import '../../../../core/design_system/glass_surface.dart';
 import '../../../../core/design_system/glass_theme.dart';
@@ -13,9 +14,37 @@ class PinAuthScreen extends ConsumerStatefulWidget {
   ConsumerState<PinAuthScreen> createState() => _PinAuthScreenState();
 }
 
-class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
+class _PinAuthScreenState extends ConsumerState<PinAuthScreen> with WidgetsBindingObserver {
   String _enteredPin = '';
   String _errorMsg = '';
+  DateTime? _pausedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _pausedTime = DateTime.now();
+    } else if (state == AppLifecycleState.resumed) {
+      if (_pausedTime != null) {
+        final diff = DateTime.now().difference(_pausedTime!);
+        if (diff.inMinutes >= 1) { // Auto-lock after 1 minute in background
+          ref.read(pinProvider.notifier).lock();
+        }
+      }
+      _pausedTime = null;
+    }
+  }
   
   void _onDigitPress(String digit) {
     if (_enteredPin.length < 4) {
@@ -43,13 +72,40 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
     if (!pinState.hasPin) {
       await ref.read(pinProvider.notifier).setPin(_enteredPin);
     } else {
-      final success = ref.read(pinProvider.notifier).verifyPin(_enteredPin);
+      final success = await ref.read(pinProvider.notifier).verifyPin(_enteredPin);
       if (!success) {
-        setState(() {
-          _errorMsg = 'Incorrect PIN. Try again.';
-          _enteredPin = '';
-        });
+        _handleFailedAttempt();
       }
+    }
+  }
+
+  void _handleFailedAttempt() async {
+    final prefs = await SharedPreferences.getInstance();
+    int attempts = (prefs.getInt('pin_attempts') ?? 0) + 1;
+    await prefs.setInt('pin_attempts', attempts);
+
+    if (attempts >= 5) {
+      // Exponential backoff
+      final waitSeconds = 5 * (attempts - 4);
+      setState(() {
+        _errorMsg = 'Too many attempts. Wait $waitSeconds seconds.';
+        _enteredPin = '';
+      });
+      // A full implementation would disable the keypad using a timer here.
+    } else {
+      setState(() {
+        _errorMsg = 'Incorrect PIN. Try again.';
+        _enteredPin = '';
+      });
+    }
+  }
+
+  void _tryBiometrics() async {
+    final success = await ref.read(pinProvider.notifier).authenticateWithBiometrics();
+    if (!success && mounted) {
+      setState(() {
+        _errorMsg = 'Biometric authentication failed. Please enter PIN.';
+      });
     }
   }
 
@@ -71,7 +127,13 @@ class _PinAuthScreenState extends ConsumerState<PinAuthScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(LucideIcons.lock, size: 64, color: Colors.grey),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              if (pinState.hasPin)
+                IconButton(
+                  icon: const Icon(LucideIcons.fingerprint, size: 48, color: Colors.white),
+                  onPressed: _tryBiometrics,
+                ),
+              const SizedBox(height: 16),
               Text(
                 message,
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

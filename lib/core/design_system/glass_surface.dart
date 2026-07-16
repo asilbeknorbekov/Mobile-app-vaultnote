@@ -117,20 +117,22 @@ class GlassSurface extends ConsumerWidget {
       );
     }
 
-    return Container(
-      margin: margin,
-      decoration: BoxDecoration(
-        borderRadius: br,
-        boxShadow: const [
-          BoxShadow(
-            color: GlassColors.glassShadow,
-            blurRadius: 24,
-            spreadRadius: -4,
-            offset: Offset(0, 8),
-          ),
-        ],
+    return RepaintBoundary(
+      child: Container(
+        margin: margin,
+        decoration: BoxDecoration(
+          borderRadius: br,
+          boxShadow: const [
+            BoxShadow(
+              color: GlassColors.glassShadow,
+              blurRadius: 24,
+              spreadRadius: -4,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        child: glassContainer,
       ),
-      child: glassContainer,
     );
   }
 }

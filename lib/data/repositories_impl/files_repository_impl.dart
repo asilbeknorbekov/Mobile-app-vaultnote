@@ -1,37 +1,44 @@
 import 'dart:typed_data';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:drift/drift.dart';
 import '../../../core/storage/secure_file_storage.dart';
 import '../../../domain/entities/vault_file.dart';
 import '../../../domain/repositories/files_repository.dart';
-import '../datasources/local/daos/files_dao.dart';
+import '../datasources/local/database/app_database.dart';
 
 class FilesRepositoryImpl implements FilesRepository {
-  final FilesDao _dao;
+  final AppDatabase _db;
   final SecureFileStorage _storage;
 
-  FilesRepositoryImpl(SharedPreferences prefs)
-      : _dao = FilesDao(prefs),
-        _storage = SecureFileStorage();
+  FilesRepositoryImpl(this._db, this._storage);
 
   @override
   Future<List<VaultFile>> getAllFiles() async {
-    final rows = _dao.getAllFiles();
+    final rows = await _db.select(_db.vaultFiles).get();
     return rows.map((r) => VaultFile(
-      id: r['id'] as String,
-      noteId: r['noteId'] as String?,
-      fileName: r['fileName'] as String,
-      fileType: r['fileType'] as String,
-      localPath: r['localPath'] as String,
-      sizeBytes: r['sizeBytes'] as int,
-      createdAt: DateTime.parse(r['createdAt'] as String),
+      id: r.id,
+      noteId: r.noteId,
+      fileName: r.fileName,
+      fileType: r.fileType,
+      localPath: r.localPath,
+      sizeBytes: r.sizeBytes,
+      createdAt: r.createdAt,
     )).toList();
   }
 
   @override
   Future<List<VaultFile>> getFilesForNote(String noteId) async {
-    final all = await getAllFiles();
-    return all.where((f) => f.noteId == noteId).toList();
+    final query = _db.select(_db.vaultFiles)..where((t) => t.noteId.equals(noteId));
+    final rows = await query.get();
+    return rows.map((r) => VaultFile(
+      id: r.id,
+      noteId: r.noteId,
+      fileName: r.fileName,
+      fileType: r.fileType,
+      localPath: r.localPath,
+      sizeBytes: r.sizeBytes,
+      createdAt: r.createdAt,
+    )).toList();
   }
 
   @override
@@ -45,15 +52,17 @@ class FilesRepositoryImpl implements FilesRepository {
     final localPath = await _storage.saveFile(fileId, rawBytes, fileType);
     final createdAt = DateTime.now();
 
-    await _dao.insertFile({
-      'id': fileId,
-      'noteId': noteId,
-      'fileName': fileName,
-      'fileType': fileType,
-      'localPath': localPath,
-      'sizeBytes': rawBytes.length,
-      'createdAt': createdAt.toIso8601String(),
-    });
+    await _db.into(_db.vaultFiles).insert(
+      VaultFilesCompanion.insert(
+        id: fileId,
+        noteId: Value(noteId),
+        fileName: fileName,
+        fileType: fileType,
+        localPath: localPath,
+        sizeBytes: rawBytes.length,
+        createdAt: createdAt,
+      ),
+    );
 
     return VaultFile(
       id: fileId, noteId: noteId, fileName: fileName,
@@ -64,17 +73,19 @@ class FilesRepositoryImpl implements FilesRepository {
 
   @override
   Future<Uint8List> getFileBytes(String fileId) async {
-    final file = _dao.getFileById(fileId);
+    final query = _db.select(_db.vaultFiles)..where((t) => t.id.equals(fileId));
+    final file = await query.getSingleOrNull();
     if (file == null) throw Exception('File not found');
-    return await _storage.readFile(file['localPath'] as String);
+    return await _storage.readFile(file.localPath);
   }
 
   @override
   Future<void> deleteFile(String fileId) async {
-    final file = _dao.getFileById(fileId);
+    final query = _db.select(_db.vaultFiles)..where((t) => t.id.equals(fileId));
+    final file = await query.getSingleOrNull();
     if (file != null) {
-      await _storage.deleteFile(file['localPath'] as String);
-      await _dao.deleteFile(fileId);
+      await _storage.deleteFile(file.localPath);
+      await (_db.delete(_db.vaultFiles)..where((t) => t.id.equals(fileId))).go();
     }
   }
 }

@@ -49,7 +49,7 @@ class FilesListScreen extends ConsumerWidget {
             if (file.path != null) {
               final bytes = await File(file.path!).readAsBytes();
               final ext = p.extension(file.name).replaceAll('.', '');
-              await ref.read(filesProvider.notifier).saveFile(file.name, ext, bytes);
+              await ref.read(filesNotifierProvider).saveFile(file.name, ext, bytes);
             }
           }
         },

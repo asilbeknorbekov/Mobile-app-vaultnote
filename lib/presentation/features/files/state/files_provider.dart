@@ -3,54 +3,47 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../domain/entities/vault_file.dart';
 import '../../../../domain/repositories/files_repository.dart';
 import '../../../../data/repositories_impl/files_repository_impl.dart';
-import '../../../app.dart';
+import '../../../../data/datasources/local/database/database_provider.dart';
+import '../../../../core/storage/secure_file_storage.dart';
 
-final filesProvider = AsyncNotifierProvider<FilesNotifier, List<VaultFile>>(() {
-  return FilesNotifier();
+final filesProvider = StreamProvider<List<VaultFile>>((ref) {
+  final db = ref.watch(databaseProvider);
+  return db.select(db.vaultFiles).watch().map((rows) {
+    return rows.map((r) => VaultFile(
+      id: r.id,
+      noteId: r.noteId,
+      fileName: r.fileName,
+      fileType: r.fileType,
+      localPath: r.localPath,
+      sizeBytes: r.sizeBytes,
+      createdAt: r.createdAt,
+    )).toList();
+  });
 });
 
-class FilesNotifier extends AsyncNotifier<List<VaultFile>> {
-  late final FilesRepository _repository;
+final filesNotifierProvider = Provider<FilesNotifier>((ref) {
+  final db = ref.watch(databaseProvider);
+  final storage = SecureFileStorage();
+  final repo = FilesRepositoryImpl(db, storage);
+  return FilesNotifier(repo);
+});
 
-  @override
-  Future<List<VaultFile>> build() async {
-    final prefs = ref.watch(sharedPrefsProvider);
-    _repository = FilesRepositoryImpl(prefs);
-    return _repository.getAllFiles();
-  }
+class FilesNotifier {
+  final FilesRepository _repository;
 
-  Future<void> refresh() async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _repository.getAllFiles());
-  }
+  FilesNotifier(this._repository);
 
   Future<VaultFile?> saveFile(String fileName, String fileType, Uint8List bytes, {String? noteId}) async {
     try {
-      final newFile = await _repository.saveFile(
+      return await _repository.saveFile(
         fileName: fileName, fileType: fileType, rawBytes: bytes, noteId: noteId,
       );
-      if (state.hasValue) {
-        final list = List<VaultFile>.from(state.value!);
-        list.insert(0, newFile);
-        state = AsyncValue.data(list);
-      }
-      return newFile;
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    } catch (e) {
       return null;
     }
   }
 
   Future<void> deleteFile(String fileId) async {
-    try {
-      await _repository.deleteFile(fileId);
-      if (state.hasValue) {
-        final list = List<VaultFile>.from(state.value!);
-        list.removeWhere((f) => f.id == fileId);
-        state = AsyncValue.data(list);
-      }
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-    }
+    await _repository.deleteFile(fileId);
   }
 }
