@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vaultnote/core/icons/lucide_icons.dart';
+import 'package:anote/core/icons/lucide_icons.dart';
 import '../../../../core/design_system/glass_surface.dart';
 import '../../../../core/design_system/glass_theme.dart';
 import '../../notes/state/notes_provider.dart';

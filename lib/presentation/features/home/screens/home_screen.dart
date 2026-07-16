@@ -6,11 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
-import 'package:vaultnote/core/icons/lucide_icons.dart';
+import 'package:anote/core/icons/lucide_icons.dart';
 import '../../../../core/design_system/glass_surface.dart';
 import '../../../../core/design_system/glass_theme.dart';
 import '../../notes/state/notes_provider.dart';
-import '../../notes/entities/note.dart';
+import '../../../../domain/entities/note.dart';
 import '../../files/state/files_provider.dart';
 
 class HomeScreen extends ConsumerWidget {

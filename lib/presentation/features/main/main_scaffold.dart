@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:vaultnote/core/icons/lucide_icons.dart';
+import 'package:anote/core/icons/lucide_icons.dart';
 import '../../../core/design_system/glass_surface.dart';
 
 class MainScaffold extends ConsumerWidget {
