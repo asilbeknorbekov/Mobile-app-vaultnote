@@ -31,7 +31,15 @@ class NotesListScreen extends ConsumerWidget {
                     if (notes.isEmpty) {
                       return _buildEmptyState();
                     }
-                    return _buildNotesGrid(notes);
+                    
+                    final sortedNotes = List<Note>.from(notes)
+                      ..sort((a, b) {
+                        if (a.isPinned && !b.isPinned) return -1;
+                        if (!a.isPinned && b.isPinned) return 1;
+                        return b.updatedAt.compareTo(a.updatedAt);
+                      });
+                      
+                    return _buildNotesGrid(sortedNotes);
                   },
                 ),
               ),

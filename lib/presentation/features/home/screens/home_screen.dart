@@ -117,13 +117,19 @@ class HomeScreen extends ConsumerWidget {
                       _QuickActionCard(
                         icon: LucideIcons.mic,
                         label: 'Record Voice',
-                        onTap: () => context.push('/home/voice'),
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Hardware features disabled in secure offline mode.')),
+                          );
+                        },
                       ),
                       _QuickActionCard(
                         icon: LucideIcons.scan,
                         label: 'Scan Doc',
                         onTap: () {
-                          // TODO: OCR
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Hardware features disabled in secure offline mode.')),
+                          );
                         },
                       ),
                     ],
@@ -159,20 +165,23 @@ class HomeScreen extends ConsumerWidget {
                         final note = recent[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: GlassSurface(
-                            tier: GlassTier.tier3,
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                const Icon(LucideIcons.fileText, color: Colors.grey),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Text(
-                                    note.title.isNotEmpty ? note.title : 'Untitled',
-                                    style: const TextStyle(fontWeight: FontWeight.w600),
+                          child: GestureDetector(
+                            onTap: () => context.push('/notes/${note.id}'),
+                            child: GlassSurface(
+                              tier: GlassTier.tier3,
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  const Icon(LucideIcons.fileText, color: Colors.grey),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      note.title.isNotEmpty ? note.title : 'Untitled',
+                                      style: const TextStyle(fontWeight: FontWeight.w600),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         );

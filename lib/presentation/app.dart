@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'routing/app_router.dart';
 import '../core/design_system/glass_theme.dart';
+import 'core/theme/theme_provider.dart';
 
 final sharedPrefsProvider = Provider<SharedPreferences>((ref) => throw UnimplementedError());
 
@@ -13,11 +14,13 @@ class VaultNoteApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+    final themeMode = ref.watch(themeProvider);
+    
     return MaterialApp.router(
       title: 'VaultNote',
       theme: GlassTheme.lightTheme,
       darkTheme: GlassTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: router,
     );
   }

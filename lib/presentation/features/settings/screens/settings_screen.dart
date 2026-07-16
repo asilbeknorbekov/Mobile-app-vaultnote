@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vaultnote/core/icons/lucide_icons.dart';
 import '../../../../core/design_system/glass_surface.dart';
 import '../../../../core/design_system/glass_theme.dart';
+import '../../../core/theme/theme_provider.dart';
 
 final localAiModeProvider = StateProvider<bool>((ref) => false);
 
@@ -54,9 +55,15 @@ class SettingsScreen extends ConsumerWidget {
                   ListTile(
                     leading: const Icon(LucideIcons.moon),
                     title: const Text('Theme'),
-                    subtitle: const Text('System Default'),
+                    subtitle: Text(ref.watch(themeProvider).toString().split('.').last.toUpperCase()),
                     trailing: const Icon(LucideIcons.chevronRight),
-                    onTap: () {},
+                    onTap: () {
+                      final currentTheme = ref.read(themeProvider);
+                      final nextTheme = currentTheme == ThemeMode.system 
+                          ? ThemeMode.light 
+                          : (currentTheme == ThemeMode.light ? ThemeMode.dark : ThemeMode.system);
+                      ref.read(themeProvider.notifier).setTheme(nextTheme);
+                    },
                   ),
                 ]),
               ),

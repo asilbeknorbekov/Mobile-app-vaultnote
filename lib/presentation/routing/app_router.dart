@@ -8,6 +8,7 @@ import '../features/notes/screens/notes_list_screen.dart';
 import '../features/notes/screens/note_editor_screen.dart';
 import '../app.dart';
 import '../features/files/screens/files_list_screen.dart';
+import '../features/files/screens/pin_auth_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/voice/screens/voice_recorder_screen.dart';
 import '../features/ai/screens/ai_assistant_screen.dart';
@@ -90,7 +91,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/files',
-                builder: (context, state) => const FilesListScreen(),
+                builder: (context, state) => const PinAuthScreen(child: FilesListScreen()),
               ),
             ],
           ),
