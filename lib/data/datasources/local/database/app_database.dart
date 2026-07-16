@@ -103,7 +103,7 @@ class AppDatabase extends _$AppDatabase {
     }
     
     // Append a wildcard to allow prefix matching
-    final ftsQuery = '\${query.replaceAll("'", "''")}*';
+    final ftsQuery = "${query.replaceAll('\'', '\'\'')}*";
     
     final result = await customSelect('''
       SELECT notes.* FROM notes
