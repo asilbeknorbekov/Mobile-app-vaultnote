@@ -17,7 +17,7 @@ class VaultNoteApp extends ConsumerWidget {
     final themeMode = ref.watch(themeProvider);
     
     return MaterialApp.router(
-      title: 'VaultNote',
+      title: 'ANOTE',
       theme: GlassTheme.lightTheme,
       darkTheme: GlassTheme.darkTheme,
       themeMode: themeMode,

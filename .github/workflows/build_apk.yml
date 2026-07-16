@@ -46,10 +46,12 @@ jobs:
         run: flutter pub run flutter_launcher_icons
 
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release
+          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/ANOTE-latest.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: anote-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/ANOTE-latest.apk
