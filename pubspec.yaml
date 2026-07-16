@@ -22,11 +22,11 @@ dependencies:
   uuid: any
   intl: any
   equatable: any
-  image_picker: any
-  record: any
-  audioplayers: any
-  speech_to_text: any
-  file_picker: any
+  image_picker: ^1.1.2
+  record: ^5.0.5
+  audioplayers: ^6.1.0
+  speech_to_text: ^6.6.1
+  file_picker: ^8.0.0
 
 dev_dependencies:
   flutter_test:
