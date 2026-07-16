@@ -1,4 +1,4 @@
-name: vaultnote
+name: anote
 description: "Your AI Second Brain."
 publish_to: 'none'
 
@@ -22,13 +22,24 @@ dependencies:
   uuid: any
   intl: any
   equatable: any
+  image_picker: any
+  record: any
+  audioplayers: any
+  speech_to_text: any
+  file_picker: any
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: any
+  flutter_launcher_icons: any
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.jpg"

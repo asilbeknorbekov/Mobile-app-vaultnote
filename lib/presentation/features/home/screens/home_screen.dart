@@ -1,10 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 import 'package:vaultnote/core/icons/lucide_icons.dart';
 import '../../../../core/design_system/glass_surface.dart';
 import '../../../../core/design_system/glass_theme.dart';
 import '../../notes/state/notes_provider.dart';
+import '../../notes/entities/note.dart';
+import '../../files/state/files_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -117,19 +124,55 @@ class HomeScreen extends ConsumerWidget {
                       _QuickActionCard(
                         icon: LucideIcons.mic,
                         label: 'Record Voice',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Hardware features disabled in secure offline mode.')),
-                          );
+                        onTap: () async {
+                          final speech = stt.SpeechToText();
+                          bool available = await speech.initialize();
+                          if (available) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Listening... Speak now.')),
+                            );
+                            speech.listen(
+                              onResult: (result) {
+                                if (result.finalResult) {
+                                  final text = result.recognizedWords;
+                                  final newNote = Note(
+                                    id: const Uuid().v4(),
+                                    title: 'Voice Note',
+                                    content: text,
+                                    createdAt: DateTime.now(),
+                                    updatedAt: DateTime.now(),
+                                    tags: [],
+                                  );
+                                  ref.read(notesProvider.notifier).addNote(newNote);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Voice transcribed and saved as note.')),
+                                  );
+                                }
+                              },
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Speech recognition not available on this device.')),
+                            );
+                          }
                         },
                       ),
                       _QuickActionCard(
                         icon: LucideIcons.scan,
                         label: 'Scan Doc',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Hardware features disabled in secure offline mode.')),
-                          );
+                        onTap: () async {
+                          final picker = ImagePicker();
+                          final XFile? image = await picker.pickImage(source: ImageSource.camera);
+                          if (image != null) {
+                            final bytes = await image.readAsBytes();
+                            final ext = p.extension(image.name).replaceAll('.', '');
+                            await ref.read(filesProvider.notifier).saveFile(image.name, ext, bytes);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Document scanned and saved to Vault.')),
+                              );
+                            }
+                          }
                         },
                       ),
                     ],

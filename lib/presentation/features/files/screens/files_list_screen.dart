@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:vaultnote/core/icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/design_system/glass_surface.dart';
@@ -37,10 +40,19 @@ class FilesListScreen extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Implement file picker / camera launch
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        onPressed: () async {
+          final result = await FilePicker.platform.pickFiles(allowMultiple: false);
+          if (result != null && result.files.isNotEmpty) {
+            final file = result.files.first;
+            if (file.path != null) {
+              final bytes = await File(file.path!).readAsBytes();
+              final ext = p.extension(file.name).replaceAll('.', '');
+              await ref.read(filesProvider.notifier).saveFile(file.name, ext, bytes);
+            }
+          }
         },
-        child: const Icon(LucideIcons.plus),
+        child: const Icon(LucideIcons.plus, color: Colors.white),
       ),
     );
   }
