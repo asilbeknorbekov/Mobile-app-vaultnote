@@ -11,7 +11,6 @@ import '../features/files/screens/files_list_screen.dart';
 import '../features/files/screens/pin_auth_screen.dart';
 import '../features/settings/screens/settings_screen.dart';
 import '../features/voice/screens/voice_recorder_screen.dart';
-import '../features/ai/screens/ai_assistant_screen.dart';
 import '../features/search/screens/search_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 
@@ -35,7 +34,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          return MainScaffold(navigationShell: navigationShell);
+          return PinAuthScreen(child: MainScaffold(navigationShell: navigationShell));
         },
         branches: [
           // Branch 0: Home
@@ -49,7 +48,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'voice',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const VoiceRecorderScreen(),
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      final mode = extra?['mode'] as String? ?? 'audio';
+                      return VoiceRecorderScreen(mode: mode);
+                    },
                   ),
                   GoRoute(
                     path: 'search',
@@ -91,21 +94,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/files',
-                builder: (context, state) => const PinAuthScreen(child: FilesListScreen()),
+                builder: (context, state) => const FilesListScreen(),
               ),
             ],
           ),
-          // Branch 3: AI Assistant
-          StatefulShellBranch(
-            navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'sectionEACNav'), // creating new key inline
-            routes: [
-              GoRoute(
-                path: '/assistant',
-                builder: (context, state) => const AiAssistantScreen(),
-              ),
-            ],
-          ),
-          // Branch 4: Settings
+          // Branch 3: Settings
           StatefulShellBranch(
             navigatorKey: _sectionDNavigatorKey,
             routes: [

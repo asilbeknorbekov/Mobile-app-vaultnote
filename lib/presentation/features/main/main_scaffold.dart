@@ -48,16 +48,10 @@ class MainScaffold extends ConsumerWidget {
               onTap: () => navigationShell.goBranch(2),
             ),
             _NavBarIcon(
-              icon: LucideIcons.sparkles,
-              label: 'Assistant',
-              isSelected: navigationShell.currentIndex == 3,
-              onTap: () => navigationShell.goBranch(3),
-            ),
-            _NavBarIcon(
               icon: LucideIcons.settings,
               label: 'Settings',
-              isSelected: navigationShell.currentIndex == 4,
-              onTap: () => navigationShell.goBranch(4),
+              isSelected: navigationShell.currentIndex == 3,
+              onTap: () => navigationShell.goBranch(3),
             ),
           ],
         ),

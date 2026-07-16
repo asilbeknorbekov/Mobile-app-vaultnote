@@ -21,10 +21,13 @@ dependencies:
   path: any
   uuid: any
   intl: any
-  equatable: any
   image_picker: ^1.1.2
   speech_to_text: ^6.6.1
   file_picker: ^8.0.0
+  open_filex: ^4.5.0
+  record: ^5.0.5
+  audioplayers: ^6.1.0
+  audio_waveforms: ^1.0.5
 
 dev_dependencies:
   flutter_test:
@@ -40,4 +43,4 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo.jpg"
+  image_path: "assets/images/logo.png"

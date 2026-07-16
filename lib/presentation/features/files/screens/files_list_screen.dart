@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
 import 'package:anote/core/icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
@@ -146,46 +147,51 @@ class _FileCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('MMM d, yyyy');
 
-    return GlassSurface(
-      tier: GlassTier.tier3,
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        OpenFilex.open(file.localPath);
+      },
+      child: GlassSurface(
+        tier: GlassTier.tier3,
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                _getIconForType(file.fileType),
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
-            child: Icon(
-              _getIconForType(file.fileType),
-              color: Theme.of(context).colorScheme.primary,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    file.fileName,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${file.fileType.toUpperCase()} • ${_formatSize(file.sizeBytes)} • ${dateFormat.format(file.createdAt)}',
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  file.fileName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${file.fileType.toUpperCase()} • ${_formatSize(file.sizeBytes)} • ${dateFormat.format(file.createdAt)}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
+            IconButton(
+              icon: const Icon(LucideIcons.moreVertical, color: Colors.grey),
+              onPressed: () {},
             ),
-          ),
-          IconButton(
-            icon: const Icon(LucideIcons.moreVertical, color: Colors.grey),
-            onPressed: () {},
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

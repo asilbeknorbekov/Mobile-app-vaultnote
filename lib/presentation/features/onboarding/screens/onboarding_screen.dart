@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:anote/core/icons/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,11 +15,18 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
+  final TextEditingController _nameController = TextEditingController();
   int _currentPage = 0;
 
   void _completeOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_completed_onboarding', true);
+    
+    final name = _nameController.text.trim();
+    if (name.isNotEmpty) {
+      await prefs.setString('user_name', name);
+    }
+    
     if (!mounted) return;
     context.go('/home');
   }
@@ -61,13 +69,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       title: 'Bank-Grade Security',
                       description: 'Everything you save is AES-256 encrypted on-device. Not even we can read your notes.',
                     ),
-                    _buildPage(
-                      context,
-                      icon: LucideIcons.sparkles,
-                      title: 'AI Assistant',
-                      description: 'Chat with your vault. Ask questions, extract tasks, and let AI synthesize your knowledge.',
-                      isLast: true,
-                    ),
+                    _buildNameInputPage(context),
                   ],
                 ),
               ),
@@ -144,6 +146,54 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
             ),
             child: Text(_currentPage == 2 ? 'Get Started' : 'Next'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNameInputPage(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(32.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GlassSurface(
+            tier: GlassTier.tier1,
+            padding: const EdgeInsets.all(32),
+            borderRadius: BorderRadius.circular(48),
+            child: Icon(LucideIcons.user, size: 80, color: Theme.of(context).colorScheme.primary),
+          ),
+          const SizedBox(height: 48),
+          const Text(
+            "What's your name?",
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'We would love to know what to call you.',
+            style: TextStyle(fontSize: 18, color: Colors.grey, height: 1.5),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          GlassSurface(
+            tier: GlassTier.tier2,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            borderRadius: BorderRadius.circular(16),
+            child: TextField(
+              controller: _nameController,
+              textCapitalization: TextCapitalization.words,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z]')),
+              ],
+              decoration: const InputDecoration(
+                hintText: 'e.g. Asilbek',
+                border: InputBorder.none,
+              ),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),

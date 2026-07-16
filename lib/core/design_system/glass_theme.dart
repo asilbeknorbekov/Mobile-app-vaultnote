@@ -55,7 +55,7 @@ class GlassTheme {
       fit: StackFit.expand,
       children: [
         Image.asset(
-          'assets/images/background.jpg',
+          isDark ? 'assets/images/background.jpg' : 'assets/images/background_light.jpg',
           fit: BoxFit.cover,
         ),
         if (isDark)

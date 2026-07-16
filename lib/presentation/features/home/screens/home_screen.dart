@@ -12,21 +12,26 @@ import '../../../../core/design_system/glass_theme.dart';
 import '../../notes/state/notes_provider.dart';
 import '../../../../domain/entities/note.dart';
 import '../../files/state/files_provider.dart';
+import '../../../app.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  String _getGreeting() {
+  String _getGreeting(String? name) {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    final timeGreeting = hour < 12 ? 'Good Morning' : (hour < 17 ? 'Good Afternoon' : 'Good Evening');
+    if (name != null && name.isNotEmpty) {
+      return '$timeGreeting, $name';
+    }
+    return timeGreeting;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final notesAsync = ref.watch(notesProvider);
+    final prefs = ref.watch(sharedPrefsProvider);
+    final userName = prefs.getString('user_name');
 
     return Scaffold(
       body: GlassTheme.buildBackground(
@@ -44,7 +49,7 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _getGreeting(),
+                        _getGreeting(userName),
                         style: const TextStyle(fontSize: 16, color: Colors.grey),
                       ),
                       const Text(
@@ -79,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
                     tier: GlassTier.tier2,
                     padding: const EdgeInsets.all(20),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _StatColumn(
                           icon: LucideIcons.database,
@@ -88,12 +93,6 @@ class HomeScreen extends ConsumerWidget {
                             data: (notes) => '${notes.length} items',
                             orElse: () => '...',
                           ),
-                        ),
-                        Container(width: 1, height: 40, color: Colors.grey.withOpacity(0.3)),
-                        const _StatColumn(
-                          icon: LucideIcons.sparkles,
-                          label: 'AI Usage',
-                          value: '2% limit',
                         ),
                       ],
                     ),
@@ -124,55 +123,35 @@ class HomeScreen extends ConsumerWidget {
                       _QuickActionCard(
                         icon: LucideIcons.mic,
                         label: 'Record Voice',
-                        onTap: () async {
-                          final speech = stt.SpeechToText();
-                          bool available = await speech.initialize();
-                          if (available) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Listening... Speak now.')),
-                            );
-                            speech.listen(
-                              onResult: (result) {
-                                if (result.finalResult) {
-                                  final text = result.recognizedWords;
-                                  final newNote = Note(
-                                    id: const Uuid().v4(),
-                                    title: 'Voice Note',
-                                    content: text,
-                                    createdAt: DateTime.now(),
-                                    updatedAt: DateTime.now(),
-                                    tags: [],
-                                  );
-                                  ref.read(notesProvider.notifier).saveNote(newNote);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Voice transcribed and saved as note.')),
-                                  );
-                                }
-                              },
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Speech recognition not available on this device.')),
-                            );
-                          }
-                        },
-                      ),
-                      _QuickActionCard(
-                        icon: LucideIcons.scan,
-                        label: 'Scan Doc',
-                        onTap: () async {
-                          final picker = ImagePicker();
-                          final XFile? image = await picker.pickImage(source: ImageSource.camera);
-                          if (image != null) {
-                            final bytes = await image.readAsBytes();
-                            final ext = p.extension(image.name).replaceAll('.', '');
-                            await ref.read(filesProvider.notifier).saveFile(image.name, ext, bytes);
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Document scanned and saved to Vault.')),
-                              );
-                            }
-                          }
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                              title: const Text('Voice Action'),
+                              content: const Text('How would you like to use your voice?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    context.go('/home/voice', extra: {'mode': 'transcribe'});
+                                  },
+                                  child: const Text('Transcribe to Text'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    context.go('/home/voice', extra: {'mode': 'audio'});
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Theme.of(context).colorScheme.primary,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text('Save Audio File'),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     ],
