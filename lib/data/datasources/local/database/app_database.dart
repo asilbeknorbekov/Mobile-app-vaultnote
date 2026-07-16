@@ -112,7 +112,14 @@ class AppDatabase extends _$AppDatabase {
       ORDER BY rank
     ''', variables: [Variable.withString(ftsQuery)], readsFrom: {notes}).get();
     
-    return result.map(notes.mapFromRow).toList();
+    return result.map((row) => NoteEntry(
+      id: row.read<String>('id'),
+      title: row.read<String>('title'),
+      body: row.read<String>('body'),
+      createdAt: row.read<DateTime>('created_at'),
+      updatedAt: row.read<DateTime>('updated_at'),
+      isEncrypted: row.read<bool>('is_encrypted')
+    )).toList();
   }
 }
 

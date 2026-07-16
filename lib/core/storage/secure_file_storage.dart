@@ -5,7 +5,9 @@ import 'package:path/path.dart' as p;
 import '../security/encryption_service.dart';
 
 class SecureFileStorage {
-  final EncryptionService _encryptionService = EncryptionService();
+  final EncryptionService _encryptionService;
+
+  SecureFileStorage(this._encryptionService);
 
   Future<Directory> _getVaultDirectory() async {
     final appDir = await getApplicationDocumentsDirectory();

@@ -53,6 +53,7 @@ class LucideIcons {
   static const IconData moon = Icons.dark_mode_outlined;
   static const IconData eyeOff = Icons.visibility_off_outlined;
   static const IconData downloadCloud = Icons.cloud_download_outlined;
+  static const IconData uploadCloud = Icons.cloud_upload_outlined;
   static const IconData logOut = Icons.logout_outlined;
 
   // Onboarding

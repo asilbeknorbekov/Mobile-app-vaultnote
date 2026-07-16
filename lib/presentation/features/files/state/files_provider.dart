@@ -5,6 +5,7 @@ import '../../../../domain/repositories/files_repository.dart';
 import '../../../../data/repositories_impl/files_repository_impl.dart';
 import '../../../../data/datasources/local/database/database_provider.dart';
 import '../../../../core/storage/secure_file_storage.dart';
+import '../../../../core/security/security_provider.dart';
 
 final filesProvider = StreamProvider<List<VaultFile>>((ref) {
   final db = ref.watch(databaseProvider);
@@ -23,7 +24,8 @@ final filesProvider = StreamProvider<List<VaultFile>>((ref) {
 
 final filesNotifierProvider = Provider<FilesNotifier>((ref) {
   final db = ref.watch(databaseProvider);
-  final storage = SecureFileStorage();
+  final encryptionService = ref.watch(encryptionServiceProvider);
+  final storage = SecureFileStorage(encryptionService);
   final repo = FilesRepositoryImpl(db, storage);
   return FilesNotifier(repo);
 });

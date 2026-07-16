@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/security/security_provider.dart';
+import '../../../../core/security/security_provider.dart';
 
 class PinState {
   final bool isUnlocked;
